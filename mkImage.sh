@@ -7,7 +7,7 @@ INPUT_NIXOS_SD_IMAGES_SHA256=\
 a66d25be56a83c48bd2e76c53dbfccd6f2ce307e6e16c59118c29b3b20c2154c
 
 PATCHED_NIXOS_SD_IMAGES_SHA256=\
-f93dd7f87fcdc32f001a90575f67a82c1f078f9c3347abe36dacd513b3b23169
+a763bf6eaa4a29bdf7b5d4a6718ce2b63493308b4bdc6093ae2d347c1dea3f80
 
 IDENTICAL_SOURCE=true
 
@@ -80,9 +80,9 @@ then
 fi
 
 echo "copying bootloader area"
-if ! dd if="$INPUT_FRIENDLYCORE_XENIAL_FILENAME" `
-     `count="$BOOT_AREA_SIZE" bs=512 `
-     `> "$NEW_NIXOS_SD_IMAGE_FILENAME"
+if ! dd if="$INPUT_FRIENDLYCORE_XENIAL_FILENAME" \
+     of="$NEW_NIXOS_SD_IMAGE_FILENAME" \
+     count="$BOOT_AREA_SIZE" bs=512
 then
     echo "error in dd!"
     exit 2
@@ -119,6 +119,14 @@ if ! parted -s -a none "$NEW_NIXOS_SD_IMAGE_FILENAME" \
 then
     echo "error in parted when writing new partition table!"
     exit 6
+fi
+
+echo "stabilizing (nullify) partition table identifier"
+if ! dd if=/dev/zero of="$NEW_NIXOS_SD_IMAGE_FILENAME" seek=110 bs=4 count=1 \
+     conv=notrunc
+then
+    echo "error in dd when overwriting partition table identifier!"
+    exit 7
 fi
 
 if $IDENTICAL_SOURCE
