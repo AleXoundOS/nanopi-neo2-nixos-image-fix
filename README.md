@@ -7,6 +7,7 @@ friendlycore-xenial image and nixos sd image for aarch64.
 - dd
 - parted
 - sha256sum
+- sfdisk (awkward, since parted is unable to delete oversized partitions)
 
 ## running
 ```shell

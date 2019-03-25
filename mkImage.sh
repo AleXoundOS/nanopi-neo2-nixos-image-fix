@@ -7,7 +7,7 @@ INPUT_NIXOS_SD_IMAGES_SHA256=\
 a66d25be56a83c48bd2e76c53dbfccd6f2ce307e6e16c59118c29b3b20c2154c
 
 PATCHED_NIXOS_SD_IMAGES_SHA256=\
-c2bdad61f3011e19100e26d3a5152f36852d3e5efac5bbd80239d2f3c68c6502
+f93dd7f87fcdc32f001a90575f67a82c1f078f9c3347abe36dacd513b3b23169
 
 IDENTICAL_SOURCE=true
 
@@ -107,18 +107,18 @@ then
 fi
 
 echo "writing new partition table"
+if ! sfdisk --no-tell-kernel --delete "$NEW_NIXOS_SD_IMAGE_FILENAME" 2
+then
+    echo "error in sfdisk when deleting oversized partition!"
+    exit 5
+fi
 if ! parted -s -a none "$NEW_NIXOS_SD_IMAGE_FILENAME" \
      unit s \
-     mktable msdos \
-     mkpart primary fat32 \
-     "$BOOT_AREA_SIZE" $(("$BOOT_AREA_SIZE" + "$NIXOS_PART_BOOT_SIZE" - 1)) \
-     set 1 boot on \
-     set 1 lba off \
-     mkpart primary ext4 \
-     $(("$BOOT_AREA_SIZE" + "$NIXOS_PART_BOOT_SIZE")) 100%
+     resizepart 1 $(("$BOOT_AREA_SIZE" + "$NIXOS_PART_BOOT_SIZE" - 1)) \
+     mkpart primary ext4 $(("$BOOT_AREA_SIZE" + "$NIXOS_PART_BOOT_SIZE")) 100%
 then
     echo "error in parted when writing new partition table!"
-    exit 5
+    exit 6
 fi
 
 if $IDENTICAL_SOURCE
